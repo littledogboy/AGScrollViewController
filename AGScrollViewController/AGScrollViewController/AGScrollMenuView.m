@@ -202,6 +202,7 @@ static NSString * const kRegisterCellIdentifier = @"kRegisterCellIdentifier_";
 
 #pragma mark - <UIScrollDelegate>
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    
     self.destinationToScrollX = [self scrollToXOfSelectedIndexPath:self.selectedIndexPath];
     self.destinationScrollLineCenterX = [self scrollLineCenterXOfIndexPath:self.selectedIndexPath];
     self.destinationScrollLineWidth = [self scrollLineWidthOfIndexPath:self.selectedIndexPath];
@@ -211,8 +212,12 @@ static NSString * const kRegisterCellIdentifier = @"kRegisterCellIdentifier_";
     BOOL isScrollXChange = self.destinationToScrollX != self.prepareToScrollX && self.scrollAgainFlag == NO;
     if (isScrollXChange || isContentSizeChange) {
         self.scrollAgainFlag = YES;
+        self.prepareToScrollX = self.destinationToScrollX;
+        
         if (self.destinationToScrollX >= scrollView.contentSize.width - scrollView.bounds.size.width) {
             [scrollView setContentOffset:CGPointMake(scrollView.contentSize.width - scrollView.bounds.size.width, 0) animated:YES];
+        } else if (self.destinationToScrollX < 0) {
+            // just do nothing
         } else {
             [scrollView setContentOffset:CGPointMake(self.destinationToScrollX, 0) animated:YES];
         }
@@ -221,6 +226,8 @@ static NSString * const kRegisterCellIdentifier = @"kRegisterCellIdentifier_";
     BOOL isLineCenterXChange = self.destinationScrollLineCenterX != self.prepareScrollLineCenterX && self.updateScrollLineCenterXFlag == NO;
     if (isLineCenterXChange || isContentSizeChange) {
         self.updateScrollLineCenterXFlag = YES;
+        self.prepareScrollLineCenterX = self.destinationToScrollX;
+        
         [self.scrollLine mas_updateConstraints:^(MASConstraintMaker *make) {
             make.centerX.mas_equalTo(self.mas_left).offset(self.destinationScrollLineCenterX);
         }];
@@ -229,9 +236,11 @@ static NSString * const kRegisterCellIdentifier = @"kRegisterCellIdentifier_";
     BOOL isLineWidthChange = self.destinationScrollLineWidth != self.prepareScrollLineWidth && self.updateScrollLineWidthFlag == NO;
     if (isLineWidthChange || isContentSizeChange) {
         self.updateScrollLineWidthFlag = YES;
+        self.prepareScrollLineWidth = self.destinationScrollLineWidth;
         // Update latestContentSizeWidth after ScrollX, LineCenterX,
         // ScrollLineWidth have updated.
         self.latestContentSizeWidth = scrollView.contentSize.width;
+        
         [self.scrollLine mas_updateConstraints:^(MASConstraintMaker *make) {
             make.width.mas_offset(self.destinationScrollLineWidth);
         }];
@@ -255,6 +264,8 @@ static NSString * const kRegisterCellIdentifier = @"kRegisterCellIdentifier_";
 //    NSInteger currentPage = contentView.contentOffset.x /
     CGFloat percent = contentView.contentOffset.x / contentView.contentSize.width;
     CGPoint velocity = [contentView.panGestureRecognizer velocityInView:contentView];
+    
+    
 }
 
 
